@@ -11,7 +11,6 @@ app.use(express.json());
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.tl2ww1y.mongodb.net/?retryWrites=true&w=majority`;
-console.log(uri);
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 const run = async () => {
@@ -22,14 +21,19 @@ const run = async () => {
         // apis 
         app.post('/posts', async (req, res) => {
             const post = req.body;
-            console.log(post);
             const result = await postsCollection.insertOne(post);
-            console.log(result);
             res.send(result);
         });
 
         app.get('/posts', async (req, res) => {
             const posts = await postsCollection.find({}).toArray();
+            res.send(posts);
+        });
+
+        app.get('/userPosts', async (req, res) => {
+            const email = req.query.email;
+            const filter = { email: email };
+            const posts = await postsCollection.find(filter).toArray();
             res.send(posts);
         });
     }
