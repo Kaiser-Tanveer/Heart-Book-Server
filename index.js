@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const port = process.env.PORT || 5000;
 
@@ -26,7 +26,7 @@ const run = async () => {
         });
 
         app.get('/posts', async (req, res) => {
-            const posts = await postsCollection.find({}).toArray();
+            const posts = await postsCollection.find({}).sort({ _id: -1 }).toArray();
             res.send(posts);
         });
 
@@ -36,6 +36,37 @@ const run = async () => {
             const posts = await postsCollection.find(filter).toArray();
             res.send(posts);
         });
+
+        app.put('/likeUpdate', async (req, res) => {
+            const like = req.body;
+            const id = req.query.id;
+            const options = { upsert: true };
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    likes: like
+                }
+            };
+            const result = await postsCollection.updateOne(filter, updatedDoc, options);
+            res.send(result);
+        });
+
+
+        app.put('/commentUpdate', async (req, res) => {
+            const comment = req.body;
+            const id = req.query.id;
+            const options = { upsert: true };
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    comments: comment
+                }
+            };
+            const result = await postsCollection.updateOne(filter, updatedDoc, options);
+            res.send(result);
+        });
+
+
     }
     finally {
 
