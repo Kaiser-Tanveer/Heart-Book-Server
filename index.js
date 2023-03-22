@@ -17,8 +17,12 @@ const run = async () => {
     try {
         // Collections 
         const postsCollection = client.db("FBDemo").collection("posts");
+        const likesCollection = client.db("FBDemo").collection("likes");
+        const commentsCollection = client.db("FBDemo").collection("comments");
+        const repliesCollection = client.db("FBDemo").collection("replies");
+        const testCollection = client.db("FBDemo").collection("test");
 
-        // apis 
+        // Post apis 
         app.post('/posts', async (req, res) => {
             const post = req.body;
             const result = await postsCollection.insertOne(post);
@@ -37,35 +41,56 @@ const run = async () => {
             res.send(posts);
         });
 
-        app.put('/likeUpdate', async (req, res) => {
+        // Like apis
+        app.post('/likes', async (req, res) => {
             const like = req.body;
+            const result = await likesCollection.insertOne(like);
+            res.send(result);
+        });
+
+        app.get('/likes', async (req, res) => {
             const id = req.query.id;
-            const options = { upsert: true };
+            const filter = { postId: id };
+            const likes = await likesCollection.find(filter).toArray();
+            res.send(likes);
+        });
+
+        app.delete('/likes', async (req, res) => {
+            const id = req.query.id;
+            console.log(id);
             const filter = { _id: new ObjectId(id) };
-            const updatedDoc = {
-                $set: {
-                    likes: like
-                }
-            };
-            const result = await postsCollection.updateOne(filter, updatedDoc, options);
+            const result = await likesCollection.deleteOne(filter);
             res.send(result);
         });
 
 
-        app.put('/commentUpdate', async (req, res) => {
+        // Comment apis 
+        app.post('/comments', async (req, res) => {
             const comment = req.body;
-            const id = req.query.id;
-            const options = { upsert: true };
-            const filter = { _id: new ObjectId(id) };
-            const updatedDoc = {
-                $set: {
-                    comments: comment
-                }
-            };
-            const result = await postsCollection.updateOne(filter, updatedDoc, options);
+            const result = await commentsCollection.insertOne(comment);
             res.send(result);
         });
 
+        app.get('/comments', async (req, res) => {
+            const id = req.query.id;
+            const filter = { postId: id };
+            const likes = await commentsCollection.find(filter).toArray();
+            res.send(likes);
+        });
+
+        // Reply apis 
+        app.post('/replies', async (req, res) => {
+            const reply = req.body;
+            const result = await repliesCollection.insertOne(reply);
+            res.send(result);
+        });
+
+        app.get('/replies', async (req, res) => {
+            const id = req.query.id;
+            const filter = { commentId: id };
+            const replies = await repliesCollection.find(filter).toArray();
+            res.send(replies);
+        });
 
     }
     finally {
